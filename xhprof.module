@@ -91,7 +91,14 @@ function xhprof_xhprof_enable() {
     xhprof_require();
 
     // @todo: consider a variable per-flag instead.
-    xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+    $flags = 0;
+    if (variable_get('xhprof_flags_cpu', TRUE)) {
+      $flags = $flags + XHPROF_FLAGS_CPU;
+    }
+    if (variable_get('xhprof_flags_memory', TRUE)) {
+      $flags = $flags + XHPROF_FLAGS_MEMORY;
+    }
+    xhprof_enable($flags);
     return TRUE;
   }
   else {

@@ -26,11 +26,25 @@ function xhprof_admin_settings() {
       ),
     ),
   );
+
+  $form['settings']['xhprof_flags_cpu'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Include CPU time in profiling output.'),
+    '#description' => t('Tracking CPU time adds some overhead. You may consider disabling this when debugging an issue that is not I/O related.'),
+    '#default_value' => variable_get('xhprof_flags_cpu', TRUE),
+  );
+  $form['settings']['xhprof_flags_memory'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Include memory usage in profiling output.'),
+    '#description' => t('Tracking memory adds some overhead, but not as much as CPU.'),
+    '#default_value' => variable_get('xhprof_flags_memory', TRUE),
+  );
   $form['settings']['xhprof_disable_admin_paths'] = array(
     '#type' => 'checkbox',
     '#title' => t('Disable profiling of admin pages'),
     '#default_value' => variable_get('xhprof_disable_admin_paths', TRUE),
   );
+
   $form['settings']['xhprof_interval'] = array(
     '#type' => 'textfield',
     '#title' => 'Profiling interval',
