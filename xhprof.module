@@ -243,6 +243,9 @@ function xhprof_run_list() {
 
   $class = variable_get('xhprof_default_class', 'XHProfRunsFile');
   $xhprof_runs_impl = new $class();
+
+  // Set the pager info in these globals since we need to fake them for
+  // theme_pager.
   $pager_page_array = array($page);
   $pager_total_items[$element] = $xhprof_runs_impl->getCount();
   $pager_total[$element] = ceil($pager_total_items[$element] / $limit);
@@ -250,10 +253,6 @@ function xhprof_run_list() {
   $pager_end = $pager_start + 50;
   $runs = $xhprof_runs_impl->getRuns(array(), $limit);
 
-  // Set the pager info in these globals since we need to fake them for
-  // theme_pager.
-  // Table attributes
-  $attributes = array('id' => 'xhprof-runs-table');
 
   // Table header
   $header = array();
@@ -272,6 +271,7 @@ function xhprof_run_list() {
     $rows[] = $row;
   }
 
+  $attributes = array('id' => 'xhprof-runs-table');
   $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $attributes));
   $output .= theme('pager');
   return $output;
@@ -420,7 +420,8 @@ function theme_xhprof_overall_summary($variables) {
     $rows[] = array("<strong>Number of function xhprof_Calls:</strong>", number_format($totals['ct']));
   }
   $header = array(array('data' => 'Overall Summary', 'colspan' => 2));
-  $output .= theme('table', array('header' => $header, 'rows' => $rows));
+  $attributes = array('class' => array('xhprof-table', 'xhprof-summary-table'));
+  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $attributes));
   return $output;
 }
 
@@ -432,8 +433,6 @@ function theme_xhprof_run_table($variables) {
   extract($variables);
   global $base_path;
 
-  // Table attributes
-  $attributes = array('id' => 'xhprof-run-table');
   $output = '';
   // Headers.
   $header = array();
@@ -460,26 +459,36 @@ function theme_xhprof_run_table($variables) {
   $i = 0;
   foreach ($flat_data as $data) {
     $row = array(
-      array('data' => l($data["fn"], $path . $data["fn"])),
-      array('data' => xhprof_print_num($data['ct'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['ct'], $totals['ct'], TRUE), 'class' => 'xhprof_percent'),
-      array('data' => xhprof_print_num($data['wt'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['wt'], $totals['wt'], TRUE), 'class' => 'xhprof_percent'),
-      array('data' => xhprof_print_num($data['excl_wt'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['excl_wt'], $totals['wt'], TRUE), 'class' => 'xhprof_percent'),
-      array('data' => xhprof_print_num($data['cpu'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['cpu'], $totals['cpu'], TRUE), 'class' => 'xhprof_percent'),
-      array('data' => xhprof_print_num($data['excl_cpu'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['excl_cpu'], $totals['cpu'], TRUE), 'class' => 'xhprof_percent'),
-      array('data' => xhprof_print_num($data['mu'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['mu'], $totals['mu'], TRUE), 'class' => 'xhprof_percent'),
-      array('data' => xhprof_print_num($data['excl_mu'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['excl_mu'], $totals['mu'], TRUE), 'class' => 'xhprof_percent'),
-      array('data' => xhprof_print_num($data['pmu'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['pmu'], $totals['pmu'], TRUE), 'class' => 'xhprof_percent'),
-      array('data' => xhprof_print_num($data['excl_pmu'], NULL, TRUE), 'class' => 'xhprof_micro'),
-      array('data' => xhprof_print_pct($data['excl_pmu'], $totals['pmu'], TRUE), 'class' => 'xhprof_percent'),
+      array('data' => l($data["fn"], $path . $data["fn"]), 'class' => 'xhprof_symbol'),
+      xhprof_print_num_cell($data['ct'], NULL, TRUE),
+      xhprof_print_pct_cell($data['ct'], $totals['ct'], TRUE),
+      xhprof_print_num_cell($data['wt'], NULL, TRUE),
+      xhprof_print_pct_cell($data['wt'], $totals['wt'], TRUE),
+      xhprof_print_num_cell($data['excl_wt'], NULL, TRUE),
+      xhprof_print_pct_cell($data['excl_wt'], $totals['wt'], TRUE),
     );
+    if (isset($data['cpu'])) {
+      $row = array_merge($row, array(
+        xhprof_print_num_cell($data['cpu'], NULL, TRUE),
+        xhprof_print_pct_cell($data['cpu'], $totals['cpu'], TRUE),
+        xhprof_print_num_cell($data['excl_cpu'], NULL, TRUE),
+        xhprof_print_pct_cell($data['excl_cpu'], $totals['cpu'], TRUE),
+      ));
+    }
+
+    if (isset($data['mu'])) {
+      $row = array_merge($row, array(
+        xhprof_print_num_cell($data['mu'], NULL, TRUE),
+        xhprof_print_pct_cell($data['mu'], $totals['mu'], TRUE),
+        xhprof_print_num_cell($data['excl_mu'], NULL, TRUE),
+        xhprof_print_pct_cell($data['excl_mu'], $totals['mu'], TRUE),
+        xhprof_print_num_cell($data['pmu'], NULL, TRUE), 
+        xhprof_print_pct_cell($data['pmu'], $totals['pmu'], TRUE),
+        xhprof_print_num_cell($data['excl_pmu'], NULL, TRUE),
+        xhprof_print_pct_cell($data['excl_pmu'], $totals['pmu'], TRUE),
+      ));
+    }
+
     $rows[] = $row;
     $i++;
     if ($limit && $i >= $limit) break;
@@ -495,7 +504,37 @@ function theme_xhprof_run_table($variables) {
     $display_link = l(" [ <strong class=bubble>display all </strong>]", current_path(), array('query' => xhprof_array_set($url_params, 'all', 1), 'html' => TRUE));
   }
   $output .= "<h3 align=center>$title $display_link</h3><br>";
+
+  $attributes = array('class' => array('xhprof-table', 'xhprof-run-table'));
   $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $attributes));
 
   return $output;
+}
+
+function xhprof_print_num_cell($num, $fmt_func = NULL, $bold = FALSE, $attributes = NULL) {
+  return array(
+    'data' => call_user_func_array('xhprof_print_num', func_get_args()),
+    'class' => 'xhprof_micro',
+    'align' => 'right',
+  );
+}
+
+function xhprof_print_pct_cell($numer, $denom, $bold = FALSE, $attributes = NULL) {
+  return array(
+    'data' => call_user_func_array('xhprof_print_pct', func_get_args()),
+    'class' => 'xhprof_percent',
+    'align' => 'right',
+  );
+}
+
+function xhprof_path_for($run1, $run2 = NULL) {
+  // NFI why the original xhprof code defaults run2 to 0, but it's simpler to
+  // use it here than put more conditionals elsewhere.
+  if ($run2 === NULL || $run2 === 0) {
+    $path = XHPROF_PATH . '/' . $run1;
+  }
+  else {
+    $path = XHPROF_PATH . '/diff/' . $run1 . '/' . $run2;
+  }
+  return $path;
 }

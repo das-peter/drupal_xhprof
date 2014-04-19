@@ -619,20 +619,11 @@ function xhprof_profiler_report($url_params, $rep_symbol, $sort, $run1, $run1_de
 
   $run1_txt = sprintf("<b>Run #%s:</b> %s", $run1, $run1_desc);
 
-  $base_url_params = xhprof_array_unset(xhprof_array_unset($url_params, 'symbol'), 'all');
-
-  $top_link_query_string = "$base_path/?" . http_build_query($base_url_params);
-
   if ($diff_mode) {
     $diff_text = "Diff";
-    $base_url_params = xhprof_array_unset($base_url_params, 'run1');
-    $base_url_params = xhprof_array_unset($base_url_params, 'run2');
-    $run1_link = xhprof_xhprof_render_link('View Run #' . $run1, "$base_path/?" .
-                          http_build_query(xhprof_array_set($base_url_params, 'run', $run1)));
+    $run1_link = l('View Run #' . $run1, xhprof_path_for($run1));
     $run2_txt = sprintf("<b>Run #%s:</b> %s", $run2, $run2_desc);
-
-    $run2_link = xhprof_xhprof_render_link('View Run #' . $run2, "$base_path/?" .
-                          http_build_query(xhprof_array_set($base_url_params, 'run', $run2)));
+    $run2_link = l('View Run #' . $run2, xhprof_path_for($run2));
   }
   else {
     $diff_text = "Run";
@@ -640,9 +631,7 @@ function xhprof_profiler_report($url_params, $rep_symbol, $sort, $run1, $run1_de
 
   // set up the action links for operations that can be done on this report
   $links = array();
-  $path_parts = explode('/', current_path());
-  array_pop($path_parts);
-  $links[] = l("View Top Level $diff_text Report", implode('/', $path_parts));
+  $links[] = l("View Top Level $diff_text Report", xhprof_path_for($run1, $run2));
 
   if ($diff_mode) {
     $inverted_params = $url_params;
@@ -652,20 +641,14 @@ function xhprof_profiler_report($url_params, $rep_symbol, $sort, $run1, $run1_de
     // view the different runs or invert the current diff
     $links[] = $run1_link;
     $links[] = $run2_link;
-    $links[] = xhprof_xhprof_render_link('Invert ' . $diff_text . ' Report', "$base_path/?".
-                                            http_build_query($inverted_params));
+    $links[] = l('Invert ' . $diff_text . ' Report', xhprof_path_for($run2, $run1));
   }
-
-  // lookup function xhprof_typeahead form
-  $links[] = '<input class="function_typeahead" ' . ' type="input" size="40" maxlength="100" />';
 
   $output .= xhprof_render_actions($links);
 
   $output .= '<dl class=xhprof_report_info>' .
     '  <dt>' . $diff_text . ' Report</dt>' .
     '  <dd>' . ($diff_mode ?  $run1_txt . '<br><b>vs.</b><br>' . $run2_txt : $run1_txt) . '  </dd>' .
-    '  <dt>Tip</dt>' .
-    '  <dd>Click a function xhprof_name below to drill down.</dd>' .
     '</dl>';
 
   // data tables
@@ -781,19 +764,19 @@ function xhprof_print_function_info($url_params, $info, $sort, $run1, $run2) {
 
   if ($display_calls) {
     // Call Count..
-    $output .= xhprof_print_num($info["ct"], $format_cbk["ct"], ($sort_col == "ct"));
-    $output .= xhprof_print_pct($info["ct"], $totals["ct"], ($sort_col == "ct"));
+    $output .= xhprof_print_num_cell($info["ct"], $format_cbk["ct"], ($sort_col == "ct"));
+    $output .= xhprof_print_pct_cell($info["ct"], $totals["ct"], ($sort_col == "ct"));
   }
 
   // Other metrics..
   foreach ($metrics as $metric) {
     // Inclusive metric
-    $output .= xhprof_print_num($info[$metric], $format_cbk[$metric], ($sort_col == $metric));
-    $output .= xhprof_print_pct($info[$metric], $totals[$metric], ($sort_col == $metric));
+    $output .= xhprof_print_num_cell($info[$metric], $format_cbk[$metric], ($sort_col == $metric));
+    $output .= xhprof_print_pct_cell($info[$metric], $totals[$metric], ($sort_col == $metric));
 
     // Exclusive Metric
-    $output .= xhprof_print_num($info["excl_" . $metric], $format_cbk["excl_" . $metric], ($sort_col == "excl_" . $metric));
-    $output .= xhprof_print_pct($info["excl_" . $metric], $totals[$metric], ($sort_col == "excl_" . $metric));
+    $output .= xhprof_print_num_cell($info["excl_" . $metric], $format_cbk["excl_" . $metric], ($sort_col == "excl_" . $metric));
+    $output .= xhprof_print_pct_cell($info["excl_" . $metric], $totals[$metric], ($sort_col == "excl_" . $metric));
   }
 
   return $output;
@@ -939,7 +922,8 @@ function xhprof_full_report($url_params, $symbol_tab, $sort, $run1, $run2) {
       );
       $rows[] = $row;
     }
-    $output .= theme('table', array('header' => $headers, 'rows' => $rows));
+    $attributes = array('class' => array('xhprof-table', 'xhprof-summary-table'));
+    $output .= theme('table', array('header' => $headers, 'rows' => $rows, 'attributes' => $attributes));
 
     $callgraph_report_title = '[View Regressions/Improvements using Callgraph Diff]';
   }
@@ -1035,14 +1019,14 @@ function xhprof_pc_info($info, $base_ct, $base_info, $parent) {
   if ($display_calls) {
     $mouseoverct = xhprof_get_tooltip_attributes($type, "ct");
     // Call count.
-    $row = array(xhprof_print_num($info["ct"], $format_cbk["ct"], ($sort_col == "ct"), $mouseoverct));
-    $row[] = xhprof_print_pct($info["ct"], $base_ct, ($sort_col == "ct"), $mouseoverct);
+    $row = array(xhprof_print_num_cell($info["ct"], $format_cbk["ct"], ($sort_col == "ct"), $mouseoverct));
+    $row[] = xhprof_print_pct_cell($info["ct"], $base_ct, ($sort_col == "ct"), $mouseoverct);
   }
 
   // Inclusive metric values.
   foreach ($metrics as $metric) {
-    $row[] = xhprof_print_num($info[$metric], $format_cbk[$metric], ($sort_col == $metric), xhprof_get_tooltip_attributes($type, $metric));
-    $row[] = xhprof_print_pct($info[$metric], $base_info[$metric], ($sort_col == $metric), xhprof_get_tooltip_attributes($type, $metric));
+    $row[] = xhprof_print_num_cell($info[$metric], $format_cbk[$metric], ($sort_col == $metric), xhprof_get_tooltip_attributes($type, $metric));
+    $row[] = xhprof_print_pct_cell($info[$metric], $base_info[$metric], ($sort_col == $metric), xhprof_get_tooltip_attributes($type, $metric));
   }
 
   return $row;
@@ -1142,10 +1126,10 @@ function xhprof_symbol_report($url_params, $run_data, $symbol_info, $sort, $rep_
 
     if ($display_calls) {
       $output .= "<td>Number of function xhprof_Calls</td>";
-      $output .= xhprof_print_num($symbol_info1["ct"], $format_cbk["ct"]);
-      $output .= xhprof_print_num($symbol_info2["ct"], $format_cbk["ct"]);
-      $output .= xhprof_print_num($symbol_info2["ct"] - $symbol_info1["ct"], $format_cbk["ct"], TRUE);
-      $output .= xhprof_print_pct($symbol_info2["ct"] - $symbol_info1["ct"], $symbol_info1["ct"], TRUE);
+      $output .= xhprof_print_num_cell($symbol_info1["ct"], $format_cbk["ct"]);
+      $output .= xhprof_print_num_cell($symbol_info2["ct"], $format_cbk["ct"]);
+      $output .= xhprof_print_num_cell($symbol_info2["ct"] - $symbol_info1["ct"], $format_cbk["ct"], TRUE);
+      $output .= xhprof_print_pct_cell($symbol_info2["ct"] - $symbol_info1["ct"], $symbol_info1["ct"], TRUE);
       $output .= '</tr>';
     }
 
@@ -1227,17 +1211,19 @@ function xhprof_symbol_report($url_params, $run_data, $symbol_info, $sort, $rep_
 
   if ($display_calls) {
     // Call Count.
-    $row[] = xhprof_print_num($symbol_info["ct"], $format_cbk["ct"]);
-    $row[] = xhprof_print_pct($symbol_info["ct"], $totals["ct"]);
+    $row[] = xhprof_print_num_cell($symbol_info["ct"], $format_cbk["ct"]);
+    $row[] = xhprof_print_pct_cell($symbol_info["ct"], $totals["ct"]);
   }
 
   // Inclusive Metrics for current function.
   foreach ($metrics as $metric) {
-    $row[] = xhprof_print_num($symbol_info[$metric], $format_cbk[$metric], ($sort_col == $metric));
-    $row[] = xhprof_print_pct($symbol_info[$metric], $totals[$metric], ($sort_col == $metric));
+    $row[] = xhprof_print_num_cell($symbol_info[$metric], $format_cbk[$metric], ($sort_col == $metric));
+    $row[] = xhprof_print_pct_cell($symbol_info[$metric], $totals[$metric], ($sort_col == $metric));
   }
   $rows[] = $row;
-  $row = array("Exclusive Metrics $diff_text for Current Function");
+  $row = array(
+    "<em>" . t("Exclusive Metrics $diff_text for Current Function") . "</em>",
+  );
 
   if ($display_calls) {
     // Call Count
@@ -1247,9 +1233,9 @@ function xhprof_symbol_report($url_params, $run_data, $symbol_info, $sort, $rep_
 
   // Exclusive Metrics for current function
   foreach ($metrics as $metric) {
-    $row[] = xhprof_print_num($symbol_info["excl_" . $metric], $format_cbk["excl_" . $metric],
+    $row[] = xhprof_print_num_cell($symbol_info["excl_" . $metric], $format_cbk["excl_" . $metric],
                  ($sort_col == $metric), xhprof_get_tooltip_attributes("Child", $metric));
-    $row[] = xhprof_print_pct($symbol_info["excl_" . $metric], $symbol_info[$metric],
+    $row[] = xhprof_print_pct_cell($symbol_info["excl_" . $metric], $symbol_info[$metric],
                  ($sort_col == $metric), xhprof_get_tooltip_attributes("Child", $metric));
   }
   $rows[] = $row;
@@ -1297,7 +1283,8 @@ function xhprof_symbol_report($url_params, $run_data, $symbol_info, $sort, $rep_
     $rows = array_merge($rows, $pc_row);
   }
 
-  $output .= theme('table', array('header' => $headers, 'rows' => $rows));
+  $attributes = array('class' => array('xhprof-table'));
+  $output .= theme('table', array('header' => $headers, 'rows' => $rows, 'attributes' => $attributes));
 
   // TODO: Convert tooltips.
   // These will be used for pop-up tips/help.
