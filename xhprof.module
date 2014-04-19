@@ -316,6 +316,10 @@ function xhprof_display_diff_page($run1, $run2, $symbol = NULL) {
 function xhprof_display_run($run_ids, $symbol = NULL) {
   xhprof_require();
 
+  if ($symbol !== NULL) {
+    $symbol = urldecode($symbol);
+  }
+
   if (count($run_ids) === 1) {
     $_GET['run'] = $run_ids[0];
     $run_id = $run_ids[0];
@@ -453,13 +457,12 @@ function theme_xhprof_run_table($variables) {
     }
   }
 
-  $path = url(XHPROF_PATH . '/' . $run1, array('absolute' => TRUE)) . '/symbol/';
   // Table rows
   $rows = array();
   $i = 0;
   foreach ($flat_data as $data) {
     $row = array(
-      array('data' => l($data["fn"], $path . $data["fn"]), 'class' => 'xhprof_symbol'),
+      array('data' => l($data["fn"], xhprof_path_for_symbol($data["fn"], $run1)), 'class' => 'xhprof_symbol'),
       xhprof_print_num_cell($data['ct'], NULL, TRUE),
       xhprof_print_pct_cell($data['ct'], $totals['ct'], TRUE),
       xhprof_print_num_cell($data['wt'], NULL, TRUE),
@@ -527,7 +530,7 @@ function xhprof_print_pct_cell($numer, $denom, $bold = FALSE, $attributes = NULL
   );
 }
 
-function xhprof_path_for($run1, $run2 = NULL) {
+function xhprof_path_for_run($run1, $run2 = NULL) {
   // NFI why the original xhprof code defaults run2 to 0, but it's simpler to
   // use it here than put more conditionals elsewhere.
   if ($run2 === NULL || $run2 === 0) {
@@ -537,4 +540,9 @@ function xhprof_path_for($run1, $run2 = NULL) {
     $path = XHPROF_PATH . '/diff/' . $run1 . '/' . $run2;
   }
   return $path;
+}
+
+function xhprof_path_for_symbol($symbol, $run1, $run2 = NULL) {
+  $run_path = xhprof_path_for_run($run1, $run2);
+  return $run_path . '/symbol/' . urlencode($symbol);
 }

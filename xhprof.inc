@@ -621,9 +621,9 @@ function xhprof_profiler_report($url_params, $rep_symbol, $sort, $run1, $run1_de
 
   if ($diff_mode) {
     $diff_text = "Diff";
-    $run1_link = l('View Run #' . $run1, xhprof_path_for($run1));
+    $run1_link = l('View Run #' . $run1, xhprof_path_for_run($run1));
     $run2_txt = sprintf("<b>Run #%s:</b> %s", $run2, $run2_desc);
-    $run2_link = l('View Run #' . $run2, xhprof_path_for($run2));
+    $run2_link = l('View Run #' . $run2, xhprof_path_for_run($run2));
   }
   else {
     $diff_text = "Run";
@@ -631,7 +631,7 @@ function xhprof_profiler_report($url_params, $rep_symbol, $sort, $run1, $run1_de
 
   // set up the action links for operations that can be done on this report
   $links = array();
-  $links[] = l("View Top Level $diff_text Report", xhprof_path_for($run1, $run2));
+  $links[] = l("View Top Level $diff_text Report", xhprof_path_for_run($run1, $run2));
 
   if ($diff_mode) {
     $inverted_params = $url_params;
@@ -641,7 +641,7 @@ function xhprof_profiler_report($url_params, $rep_symbol, $sort, $run1, $run1_de
     // view the different runs or invert the current diff
     $links[] = $run1_link;
     $links[] = $run2_link;
-    $links[] = l('Invert ' . $diff_text . ' Report', xhprof_path_for($run2, $run1));
+    $links[] = l('Invert ' . $diff_text . ' Report', xhprof_path_for_run($run2, $run1));
   }
 
   $output .= xhprof_render_actions($links);
@@ -1043,18 +1043,12 @@ function xhprof_print_pc_array($url_params, $results, $base_ct, $base_info, $par
     $title = '<strong>' . $title . 's</strong>';
   }
 
-  // Get the current path info to assemble the symbol links. There is probably
-  // a better way to do this…
-  $path_parts = explode('/', current_path());
-  array_pop($path_parts);
-  $symbol_path = implode('/', $path_parts);
-
   $rows[] = array(array('data' => $title, 'colspan' => 11));
   usort($results, 'xhprof_sort_cbk');
 
   foreach ($results as $info) {
     $row = array();
-    $row[] = l($info["fn"], $symbol_path . '/' . $info["fn"]);
+    $row[] = l($info["fn"], xhprof_path_for_symbol($info["fn"], $run1, $run2));
     $row = array_merge($row, xhprof_pc_info($info, $base_ct, $base_info, $parent));
     $rows[] = $row;
   }
