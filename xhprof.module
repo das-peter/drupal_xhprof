@@ -140,6 +140,11 @@ function xhprof_boot() {
 function xhprof_shutdown() {
   global $xhprof_run_id;
 
+  // Exit here if this module is being disabled.
+  if (!module_exists('xhprof')) {
+    return;
+  }
+
   if (xhprof_is_enabled() && $xhprof_run_id = xhprof_shutdown_xhprof()) {
     // Register the real shutdown function so it runs later than other shutdown functions.
     drupal_register_shutdown_function('xhprof_shutdown_real');
