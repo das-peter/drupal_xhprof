@@ -27,6 +27,12 @@ function xhprof_admin_settings() {
     ),
   );
 
+  $form['settings']['xhprof_use_cookie'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use cookie to toggle xhprof'),
+    '#default_value' => variable_get('xhprof_use_cookie', FALSE),
+    '#description' => t('If enabled profiling is just enabled if the cookie <em>XHProf_Profile</em> is present. There are handy browser addons for <a hre="https://chrome.google.com/webstore/detail/xhprof-helper/adnlhmmjijeflmbmlpmhilkicpnodphi/related">Chrome</a> and <a href="https://addons.mozilla.org/nl/firefox/addon/xhprof-helper-for-firefox">Firefox</a>'),
+  );
   $form['settings']['xhprof_flags_cpu'] = array(
     '#type' => 'checkbox',
     '#title' => t('Include CPU time in profiling output.'),
