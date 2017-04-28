@@ -9,7 +9,8 @@ function xhprof_menu() {
   $items = array();
   $items[XHPROF_PATH] = array(
     'title' => 'XHProf runs',
-    'page callback' => 'xhprof_run_list',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('xhprof_run_list'),
     'access arguments' => array('access xhprof data'),
     'description' => 'View XHProf profiling data.',
   );
@@ -239,7 +240,7 @@ function xhprof_get_classes() {
 /**
  * Display list of saved XHProf runs.
  */
-function xhprof_run_list() {
+function xhprof_run_list($form, &$form_state) {
   global $pager_page_array, $pager_total, $pager_total_items;
   xhprof_include();
   $page = isset($_GET['page']) ? $_GET['page'] : '';
@@ -247,6 +248,7 @@ function xhprof_run_list() {
   $limit = 50;
 
   $class = variable_get('xhprof_default_class', 'XHProfRunsFile');
+  /** @var XHProfRunsInterface $xhprof_runs_impl */
   $xhprof_runs_impl = new $class();
 
   // Set the pager info in these globals since we need to fake them for
@@ -264,6 +266,8 @@ function xhprof_run_list() {
   $header[] = array('data' => t('View'));
   $header[] = array('data' => t('Path'), 'field' => 'path');
   $header[] = array('data' => t('Date'), 'field' => 'date', 'sort' => 'desc');
+  $header[] = array('data' => t('Run1'));
+  $header[] = array('data' => t('Run2'));
 
   // Table rows
   $rows = array();
@@ -273,13 +277,56 @@ function xhprof_run_list() {
     $row[] = array('data' => l($run['run_id'], $link));
     $row[] = array('data' => isset($run['path']) ? $run['path'] : '');
     $row[] = array('data' => format_date($run['date'], 'small'));
+    $row[] = array('data' => array('run1' => array('#name' => 'run1', '#type' => 'radio', '#return_value' => $run['run_id'], '#value' => 0)));
+    $row[] = array('data' => array('run2' => array('#name' => 'run2', '#type' => 'radio', '#return_value' => $run['run_id'], '#value' => 0)));
     $rows[] = $row;
   }
 
-  $attributes = array('id' => 'xhprof-runs-table');
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => $attributes));
-  $output .= theme('pager');
-  return $output;
+  $form['table'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#attributes' => array('id' => 'xhprof-runs-table'),
+  );
+  $form['pager']['#theme'] = 'pager';
+
+  $form['diff'] = array(
+    '#type' => 'submit',
+    '#value' => t('Diff'),
+    '#submit' => array('xhprof_run_list_diff_submit'),
+  );
+
+  $form['remove_runs'] = array(
+    '#type' => 'submit',
+    '#value' => t('Clear all runs'),
+    '#submit' => array('xhprof_run_list_clear'),
+  );
+
+  return $form;
+}
+
+function xhprof_run_list_diff_submit($form_state) {
+  if (!empty($form_state['values']['run1']) && !empty($form_state['values']['run1'])) {
+    drupal_goto(XHPROF_PATH . '/diff/' . $form_state['values']['run1'] . '/' . $form_state['values']['run2']);
+  }
+}
+
+function xhprof_run_list_clear($form_state) {
+  xhprof_include();
+  $class = variable_get('xhprof_default_class', 'XHProfRunsFile');
+  /** @var XHProfRunsInterface $xhprof_runs_impl */
+  $xhprof_runs_impl = new $class();
+  if ($xhprof_runs_impl instanceof XHProfRunsFile) {
+    $runs = $xhprof_runs_impl->getRuns();
+    $dir = ini_get("xhprof.output_dir") ?: sys_get_temp_dir();
+    foreach ($runs as $run) {
+      $file = $dir . '/' . $run['basename'];
+      if (file_exists($file) && is_writable($file)) {
+        drupal_unlink($file);
+      }
+    }
+  }
+
 }
 
 /**
