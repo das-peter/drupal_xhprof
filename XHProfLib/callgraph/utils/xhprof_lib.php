@@ -19,27 +19,6 @@
 // Do not add any display specific code here.
 //
 
-function xhprof_error($message) {
-  error_log($message);
-}
-
-/*
- * The list of possible metrics collected as part of XHProf that
- * require inclusive/exclusive handling while reporting.
- *
- * @author Kannan
- */
-function xhprof_get_possible_metrics() {
- static $possible_metrics =
-   array("wt" => array("Wall", "microsecs", "walltime" ),
-         "ut" => array("User", "microsecs", "user cpu time" ),
-         "st" => array("Sys", "microsecs", "system cpu time"),
-         "cpu" => array("Cpu", "microsecs", "cpu time"),
-         "mu" => array("MUse", "bytes", "memory usage"),
-         "pmu" => array("PMUse", "bytes", "peak memory usage"),
-         "samples" => array("Samples", "samples", "cpu time"));
- return $possible_metrics;
-}
 
 /*
  * Get the list of metrics present in $xhprof_data as an array.

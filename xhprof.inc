@@ -1699,3 +1699,7 @@ function xhprof_get_possible_metrics() {
   );
  return $possible_metrics;
 }
+
+function xhprof_error($message) {
+  error_log($message);
+}
