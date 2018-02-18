@@ -9,7 +9,15 @@
  * Administrative settings form for XHProf module.
  */
 function xhprof_admin_settings() {
-  $description = extension_loaded('xhprof') ? t('Profile requests with the xhprof php extension.') : '<span class="warning">' . t('You must enable the <a href="!url">xhprof php extension</a> to use this feature.', array('!url' => url('http://techportal.ibuildings.com/2009/12/01/profiling-with-xhprof/'))) . '</span>';
+  if (extension_loaded('xhprof')) {
+    $description = t('Profile requests with the xhprof PHP extension.');
+  }
+  else {
+    $description = '<span class="warning">' . t('You must enable the <a href="!url">xhprof PHP extension</a> to use this feature.', array(
+      '!url' => url('https://www.drupal.org/node/946182'),
+    )) . '</span>';
+  }
+
   $form['xhprof_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable profiling of page views and <a href="!drush">drush</a> requests.', array('!drush' => url('http://drush.ws'))),
