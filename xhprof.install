@@ -13,6 +13,7 @@ function xhprof_uninstall() {
   variable_del('xhprof_flags_cpu');
   variable_del('xhprof_flags_memory');
   variable_del('xhprof_disable_admin_paths');
+  variable_del('xhprof_disable_admin_menu_paths');
   variable_del('xhprof_interval');
   variable_del('xhprof_default_class');
 }
