@@ -5,7 +5,7 @@ class XHProfRunsFile implements XHProfRunsInterface {
   private $suffix;
 
   public function __construct() {
-    $this->dir = ini_get("xhprof.output_dir") ?: sys_get_temp_dir();
+    $this->dir = ini_get('xhprof.output_dir') && is_dir(ini_get('xhprof.output_dir')) ? ini_get('xhprof.output_dir') : file_directory_temp();
     $this->suffix = 'xhprof';
   }
 

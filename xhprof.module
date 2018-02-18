@@ -421,7 +421,7 @@ function theme_xhprof_overall_summary($variables) {
   // Extract variables: $totals, $possible_metrics, $metrics, $display_calls;
   extract($variables);
   $rows = array();
-  foreach ($metrics as $metric) {
+  foreach ((array) $metrics as $metric) {
     $rows[] = array('<strong>Total ' . xhprof_stat_description($metric) . ':</strong>', number_format($totals[$metric]) . " " . $possible_metrics[$metric][1]);
   }
 

@@ -54,6 +54,13 @@ class XHProfRunsFile implements XHProfRunsInterface {
   }
 
   public function get_run($run_id, $type, &$run_desc) {
+    if (!is_dir($this->dir) || !is_writable($this->dir)) {
+      // If the runs directory is not found or writable.
+      drupal_set_message(t('XHProf could not find the runs directory "%directory".', array('%directory' => $this->dir)), 'error');
+      $run_desc = "Invalid runs directory = $this->dir";
+      return NULL;
+    }
+
     $file_name = $this->file_name($run_id, $type);
 
     if (!file_exists($file_name)) {
