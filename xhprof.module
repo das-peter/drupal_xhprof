@@ -253,7 +253,7 @@ function xhprof_get_classes() {
 function xhprof_run_list($form, &$form_state) {
   global $pager_page_array, $pager_total, $pager_total_items;
   xhprof_include();
-  $page = isset($_GET['page']) ? $_GET['page'] : '';
+  $page = (int) (isset($_GET['page']) ? $_GET['page'] : 0);
   $element = 0;
   $limit = 50;
 
