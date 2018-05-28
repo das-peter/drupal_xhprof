@@ -75,6 +75,13 @@ function xhprof_admin_settings() {
     '#description' => t('The approximate number of requests between XHProf samples. Leave empty to profile all requests'),
   );
 
+  $form['settings']['xhprof_ignore_functions'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Ignored functions',
+    '#default_value' => variable_get('xhprof_ignore_functions', ''),
+    '#description' => t('Comma separated list of ignored functions.'),
+  );
+
   $options = drupal_map_assoc(xhprof_get_classes());
   $form['settings']['xhprof_default_class'] = array(
     '#type' => 'radios',

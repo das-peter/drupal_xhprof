@@ -17,4 +17,5 @@ function xhprof_uninstall() {
   variable_del('xhprof_interval');
   variable_del('xhprof_default_class');
   variable_del('xhprof_use_cookie');
+  variable_del('xhprof_ignore_functions');
 }

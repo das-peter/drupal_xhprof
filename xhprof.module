@@ -105,7 +105,12 @@ function xhprof_xhprof_enable() {
     if (variable_get('xhprof_flags_memory', TRUE)) {
       $flags = $flags + XHPROF_FLAGS_MEMORY;
     }
-    xhprof_enable($flags);
+    $options = array();
+    if (($ignored_functions = variable_get('xhprof_ignore_functions', '')) && !empty($ignored_functions)) {
+      $ignored_functions = array_map('trim', explode(',', $ignored_functions));
+      $options['ignored_functions'] = $ignored_functions;
+    }
+    xhprof_enable($flags, $options);
     return TRUE;
   }
   else {
