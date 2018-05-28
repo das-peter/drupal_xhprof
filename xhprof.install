@@ -1,16 +1,20 @@
 <?php
 
 /**
+ * @file
+ * Uninstall function for XHProf.
+ */
+
+/**
  * Implements hook_uninstall().
  */
 function xhprof_uninstall() {
   variable_del('xhprof_enabled');
-  variable_del('xhprof_use_cookie');
   variable_del('xhprof_flags_cpu');
   variable_del('xhprof_flags_memory');
   variable_del('xhprof_disable_admin_paths');
+  variable_del('xhprof_disable_admin_menu_paths');
   variable_del('xhprof_interval');
   variable_del('xhprof_default_class');
-  variable_del('xhprof_disable_admin_paths');
-  variable_del('xhprof_disable_admin_paths');
+  variable_del('xhprof_use_cookie');
 }

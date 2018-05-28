@@ -9,7 +9,15 @@
  * Administrative settings form for XHProf module.
  */
 function xhprof_admin_settings() {
-  $description = xhprof_extension_check() ? t('Profile requests with the xhprof php extension.') : '<span class="warning">' . t('You must enable the <a href="!url">xhprof php extension</a> to use this feature.', array('!url' => url('http://techportal.ibuildings.com/2009/12/01/profiling-with-xhprof/'))) . '</span>';
+  if (xhprof_extension_check()) {
+    $description = t('Profile requests with the xhprof PHP extension.');
+  }
+  else {
+    $description = '<span class="warning">' . t('You must enable the <a href="!url">xhprof PHP extension</a> to use this feature.', array(
+      '!url' => url('https://www.drupal.org/node/946182'),
+    )) . '</span>';
+  }
+
   $form['xhprof_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable profiling of page views and <a href="!drush">drush</a> requests.', array('!drush' => url('http://drush.ws'))),
@@ -50,6 +58,15 @@ function xhprof_admin_settings() {
     '#title' => t('Disable profiling of admin pages'),
     '#default_value' => variable_get('xhprof_disable_admin_paths', TRUE),
   );
+
+  if (module_exists('admin_menu')) {
+    $form['settings']['xhprof_disable_admin_menu_paths'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Disable profiling of Admin-Menu paths'),
+      '#description' => t('The Admin-Menu module is installed, check this setting to avoid profiling the admin-menu XHR requests.'),
+      '#default_value' => variable_get('xhprof_disable_admin_menu_paths', TRUE),
+    );
+  }
 
   $form['settings']['xhprof_interval'] = array(
     '#type' => 'textfield',

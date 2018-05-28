@@ -1623,7 +1623,7 @@ function xhprof_compute_flat_info($raw_data, &$overall_totals) {
   }
 
   // Adjust exclusive times by deducting inclusive time of children.
-  foreach ($raw_data as $parent_child => $info) {
+  foreach ((array) $raw_data as $parent_child => $info) {
     list($parent, $child) = xhprof_parse_parent_child($parent_child);
 
     if ($parent) {
@@ -1649,7 +1649,7 @@ function xhprof_compute_inclusive_times($raw_data) {
    * call count for each function across all parents the
    * function is called from.
    */
-  foreach ($raw_data as $parent_child => $info) {
+  foreach ((array) $raw_data as $parent_child => $info) {
     list($parent, $child) = xhprof_parse_parent_child($parent_child);
 
     if ($parent == $child) {
